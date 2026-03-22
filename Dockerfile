@@ -26,5 +26,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-# Uvicorn runs the FastAPI app. Railway injects $PORT; we read it at runtime.
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
+# start.sh expands $PORT at runtime — more reliable than sh -c in CMD.
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]
