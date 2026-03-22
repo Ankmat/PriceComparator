@@ -26,7 +26,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-# start.sh expands $PORT at runtime — more reliable than sh -c in CMD.
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-CMD ["/app/start.sh"]
+# start.py reads PORT via os.environ — no shell variable expansion needed.
+CMD ["python", "start.py"]
