@@ -27,4 +27,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 EXPOSE 8000
 
 # Uvicorn runs the FastAPI app. Railway injects $PORT; we read it at runtime.
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
