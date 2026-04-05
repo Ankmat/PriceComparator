@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CentSaver — Compare Woolworths, Coles &amp; Aldi Prices</title>
+  <title>CentSaver — Smart Shopping Basket Comparator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
@@ -26,23 +26,23 @@
       </div>
 
       <!-- Headline -->
-      <h1 class="hero-title">Every cent<br><em>counts.</em></h1>
-      <p class="hero-sub">Compare grocery prices across Woolworths, Coles &amp; Aldi — instantly.</p>
+      <h1 class="hero-title">Shop smarter,<br><em>save more.</em></h1>
+      <p class="hero-sub">Add your shopping list, choose your stores, and find where everything is cheapest.</p>
 
       <!-- Tab switcher -->
       <div class="tab-bar" role="tablist">
-        <button class="tab active" id="tab-search" data-tab="search" role="tab" aria-selected="true">
+        <button class="tab" id="tab-search" data-tab="search" role="tab" aria-selected="false">
           <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" stroke-width="1.9"/><path d="M13 13L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
           Search
         </button>
-        <button class="tab" id="tab-basket" data-tab="basket" role="tab" aria-selected="false">
+        <button class="tab active" id="tab-basket" data-tab="basket" role="tab" aria-selected="true">
           <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M2 5h16M5 5V4a3 3 0 0 1 6 0v1M7 10h6M6 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           Shopping List
         </button>
       </div>
 
       <!-- Search form -->
-      <form class="search-form" id="search-form" autocomplete="off">
+      <form class="search-form hidden" id="search-form" autocomplete="off">
         <div class="search-box">
           <svg class="search-icon" viewBox="0 0 20 20" fill="none">
             <circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" stroke-width="1.75"/>
@@ -56,7 +56,18 @@
       </form>
 
       <!-- Basket / shopping list form -->
-      <div class="basket-form hidden" id="basket-form">
+      <div class="basket-form" id="basket-form">
+
+        <!-- Store selector -->
+        <div class="store-selector" id="store-selector">
+          <span class="store-selector-label">Search in:</span>
+          <div class="store-pills" id="store-pills">
+            <!-- Populated by JS from /api/stores -->
+            <span class="store-pill-loading">Loading stores…</span>
+          </div>
+        </div>
+
+        <!-- Item input -->
         <div class="basket-input-row">
           <input type="text" id="basket-input"
             placeholder="Add item — e.g. full cream milk 2L"
@@ -64,14 +75,29 @@
           <button id="basket-add-btn" type="button">Add</button>
         </div>
         <div id="basket-chips" class="basket-chips"></div>
-        <button id="basket-compare-btn" class="basket-compare-btn hidden" type="button">
-          Compare shopping list
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+
+        <!-- Mode selector + Compare button -->
+        <div class="basket-actions hidden" id="basket-actions">
+          <div class="mode-selector" id="mode-selector">
+            <button class="mode-btn active" data-mode="split" id="mode-split">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 10h14M3 5h7M3 15h7M14 7l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Best Split
+            </button>
+            <button class="mode-btn" data-mode="single" id="mode-single">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Single Store
+            </button>
+          </div>
+          <button id="basket-compare-btn" class="basket-compare-btn" type="button">
+            Compare
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
       </div>
 
-      <!-- Quick-search chips -->
-      <div class="quick-chips" id="quick-chips">
+      <!-- Quick-search chips (search tab only) -->
+      <div class="quick-chips hidden" id="quick-chips">
         <button class="qchip" data-q="full cream milk 2L">Full cream milk 2L</button>
         <button class="qchip" data-q="white bread loaf">White bread</button>
         <button class="qchip" data-q="Greek yoghurt">Greek yoghurt</button>
@@ -89,22 +115,9 @@
     <!-- Loading state -->
     <div class="loading-state hidden" id="loading-state">
       <div class="loading-inner">
-        <div class="stores-progress">
-          <div class="store-prog ww-prog">
-            <div class="store-prog-bar"><div class="prog-fill"></div></div>
-            <span>Woolworths</span>
-          </div>
-          <div class="store-prog co-prog">
-            <div class="store-prog-bar"><div class="prog-fill"></div></div>
-            <span>Coles</span>
-          </div>
-          <div class="store-prog al-prog">
-            <div class="store-prog-bar"><div class="prog-fill"></div></div>
-            <span>Aldi</span>
-          </div>
-        </div>
-        <p class="loading-msg" id="loading-msg">Searching all three stores simultaneously…</p>
-        <p class="loading-sub">Scraping live prices — usually 15–30 seconds</p>
+        <div class="loading-spinner"></div>
+        <p class="loading-msg" id="loading-msg">Searching stores simultaneously…</p>
+        <p class="loading-sub">Fetching live prices — usually 15–30 seconds</p>
       </div>
     </div>
 
@@ -143,54 +156,18 @@
       <!-- Suggestion chips -->
       <div class="suggestion-section hidden" id="suggestion-section"></div>
 
-      <!-- 3-column store grid -->
-      <div class="stores-grid" id="stores-grid">
+      <!-- Store grid (dynamic) -->
+      <div class="stores-grid" id="stores-grid"></div>
 
-        <section class="store-col" id="ww-col">
-          <div class="store-header ww-header">
-            <div class="store-badge-wrap">
-              <div class="store-badge ww-badge">W</div>
-              <div>
-                <div class="store-name">Woolworths</div>
-                <div class="result-count" id="ww-count"></div>
-              </div>
-            </div>
-          </div>
-          <div class="product-list" id="ww-list"></div>
-        </section>
-
-        <section class="store-col" id="coles-col">
-          <div class="store-header coles-header">
-            <div class="store-badge-wrap">
-              <div class="store-badge coles-badge">C</div>
-              <div>
-                <div class="store-name">Coles</div>
-                <div class="result-count" id="coles-count"></div>
-              </div>
-            </div>
-          </div>
-          <div class="product-list" id="coles-list"></div>
-        </section>
-
-        <section class="store-col" id="aldi-col">
-          <div class="store-header aldi-header">
-            <div class="store-badge-wrap">
-              <div class="store-badge aldi-badge">A</div>
-              <div>
-                <div class="store-name">Aldi</div>
-                <div class="result-count" id="aldi-count"></div>
-              </div>
-            </div>
-          </div>
-          <div class="product-list" id="aldi-list"></div>
-        </section>
-
-      </div>
     </div>
 
     <!-- Basket results -->
     <div class="basket-results hidden" id="basket-results">
-      <div class="basket-summary" id="basket-summary"></div>
+      <!-- Savings hero -->
+      <div class="savings-hero hidden" id="savings-hero"></div>
+      <!-- Strategy section (split or single) -->
+      <div class="strategy-section" id="strategy-section"></div>
+      <!-- Full price comparison table -->
       <div class="basket-breakdown" id="basket-breakdown"></div>
     </div>
 
@@ -201,16 +178,18 @@
     <div class="footer-inner">
       <div class="footer-logo">CentSaver</div>
       <p class="disclaimer">
-        CentSaver is an independent tool not affiliated with, endorsed by, or sponsored by
-        Woolworths Group, Coles Group, or ALDI Stores. Prices are fetched from publicly
-        accessible pages and may differ from in-store prices or change without notice.
+        CentSaver is an independent tool not affiliated with, endorsed by, or sponsored by any retailer.
+        Prices are fetched from publicly accessible pages and may differ from in-store prices or change without notice.
         Provided for general comparison only.
       </p>
-      <p class="footer-links">
+      <p class="footer-links" id="footer-links">
         Data sourced from
         <a href="https://www.woolworths.com.au" target="_blank" rel="noopener">woolworths.com.au</a>,
-        <a href="https://www.coles.com.au" target="_blank" rel="noopener">coles.com.au</a> and
-        <a href="https://www.aldi.com.au" target="_blank" rel="noopener">aldi.com.au</a>.
+        <a href="https://www.coles.com.au" target="_blank" rel="noopener">coles.com.au</a>,
+        <a href="https://www.aldi.com.au" target="_blank" rel="noopener">aldi.com.au</a>,
+        <a href="https://www.chemistwarehouse.com.au" target="_blank" rel="noopener">chemistwarehouse.com.au</a>,
+        <a href="https://www.bigw.com.au" target="_blank" rel="noopener">bigw.com.au</a> and
+        <a href="https://www.igashop.com.au" target="_blank" rel="noopener">igashop.com.au</a>.
       </p>
     </div>
   </footer>
